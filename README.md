@@ -1,1 +1,0 @@
-# NI_DAQ_Recording
