@@ -14,6 +14,7 @@ measurement={}
 measurement['Temperature 0']=[]
 measurement['Timestamp']=[]
 
+Test=True
 init=timer()
 previouslyStable=False
 currentlyStable=False
@@ -35,7 +36,7 @@ column=column+1
 sheet1.write(row,column,'Temperature')
 wb.save('TestFile')
 
-while True:
+while Test==True:
     ls=task.read()
     timestamp=timer()-init
     Temperature=ls
@@ -51,7 +52,7 @@ while True:
         sheet1.write(row,column,ls[0])
         row=row+1
         column=0        
-    elif False:
+    elif Test==False:
         pass
 
     else:
