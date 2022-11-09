@@ -1,4 +1,7 @@
 import nidaqmx
+from nidaqmx.constants import (
+    AcquisitionType, ChannelType, UsageTypeAI, UsageTypeCI, EveryNSamplesEventType,
+    READ_ALL_AVAILABLE, UsageTypeCO, _Save)
 import time
 from timeit import default_timer as timer
 import xlwt
@@ -9,9 +12,17 @@ sys=nidaqmx.system.System.local()
 dev=sys.devices[1]
 task=nidaqmx.Task('AcquireTemp')
 task.ai_channels.add_ai_thrmcpl_chan(dev.name+'/ai0','Temp0',min_val = float(0),max_val = float(100))
+task.ai_channels.add_ai_thrmcpl_chan(dev.name+'/ai1','Temp1',min_val = float(0),max_val = float(100))
+task.ai_channels.add_ai_thrmcpl_chan(dev.name+'/ai2','Temp2',min_val = float(0),max_val = float(100))
+task.ai_channels.add_ai_thrmcpl_chan(dev.name+'/ai3','Temp3',min_val = float(0),max_val = float(100))
+task.ai_channels.add_ai_thrmcpl_chan(dev.name+'/ai4','Temp4',min_val = float(0),max_val = float(100))
 task.timing.cfg_samp_clk_timing(50000, samps_per_chan=25000)
 measurement={}
 measurement['Temperature 0']=[]
+measurement['Temperature 1']=[]
+measurement['Temperature 2']=[]
+measurement['Temperature 3']=[]
+measurement['Temperature 4']=[]
 measurement['Timestamp']=[]
 
 Test=True
@@ -33,28 +44,77 @@ column=0
 sheet1 = wb.add_sheet('Test Data2')
 sheet1.write(row,column,'Timestamp')
 column=column+1
-sheet1.write(row,column,'Temperature')
-wb.save('TestFile')
+sheet1.write(row,column,'Temperature 0')
+column=column+1
+sheet1.write(row,column,'Temperature 1')
+column=column+1
+sheet1.write(row,column,'Temperature 2')
+column=column+1
+sheet1.write(row,column,'Temperature 3')
+column=column+1
+sheet1.write(row,column,'Temperature 4')
+row=row+1
+column=0
 
 while Test==True:
     ls=task.read()
-    timestamp=timer()-init
+    timestamp=timer()-init 
+    print('New Data Set')
     Temperature=ls
-    Temperature!=0
-    row=row+1
-    if measuring:
+
+    if Temperature == 0:
+        task.close()
+        break
+
+    if timestamp >= 0 and timestamp <= 59:
         measurement['Timestamp'].append(timestamp)
-        print('Timestamp = ' + timestamp)
         sheet1.write(row,column,timestamp)
         column=column+1
-        measurement['Temperature'].append(ls[0])
-        print('temperature = ' + ls[0])
+        measurement['Temperature 0'].append(ls[0])
+        print('temperature0 = ')
+        print(ls[0])
         sheet1.write(row,column,ls[0])
+        column=column+1
+        measurement['Temperature 1'].append(ls[1])
+        print('temperature1 = ')
+        print(ls[1])
+        sheet1.write(row,column,ls[1])
+        column=column+1
+        measurement['Temperature 2'].append(ls[2])
+        print('temperature2 = ')
+        print(ls[2])
+        sheet1.write(row,column,ls[2])
+        column=column+1
+        measurement['Temperature 3'].append(ls[3])
+        print('temperature3 = ')
+        print(ls[3])
+        sheet1.write(row,column,ls[3])
+        column=column+1
+        measurement['Temperature 4'].append(ls[4])
+        print('temperature4 = ')
+        print(ls[4])
+        sheet1.write(row,column,ls[4])
         row=row+1
-        column=0        
+        column=0  
+        task.stop()
+        time.sleep(0.125)
+        task.start()
+        task.read()
+        time.sleep(0.125)
+
+
+    elif timestamp >= 60:
+        wb.save('TestFile')
+        task.close()
+        break   
+
     elif Test==False:
-        pass
+        wb.save('TestFile')
+        task.close()
+        break
 
     else:
-        pass
+        wb.save('TestFile')
+        task.close()
+        break
     
