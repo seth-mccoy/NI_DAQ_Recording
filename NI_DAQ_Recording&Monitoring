@@ -3,14 +3,16 @@ from nidaqmx.constants import (
     AcquisitionType, ChannelType, UsageTypeAI, UsageTypeCI, EveryNSamplesEventType,READ_ALL_AVAILABLE, UsageTypeCO, _Save)
 import time
 from timeit import default_timer as timer
-import xlwt
-from xlwt import Workbook
+import pandas
 import datetime
 import easygui
 Test = True
 
 while not easygui.ynbox('Do you have NI Max Installed?','Do you?', ('YES','NO'),r"C:\Users\seth.mccoy\Pictures\Camera Roll\NI Max Logo.jpg"):
     easygui.msgbox('Go install NI Max!','What are you even doing?','OK')
+
+while not easygui.ynbox('Do you have your DAQ reserved on NI Max?','Reserve your device on NI Max',('YES','NO')):
+    easygui.msgbox('Go reserve your device on NI Max!','Go reserve now','OK')
 
 print('Great!')
 print('Initilizing DAQ')
@@ -20,10 +22,8 @@ measurement={}
 measurement['Timestamp']=[]
 task.timing.cfg_samp_clk_timing(50000, samps_per_chan=25000)
 for devices in sys.devices: #This for loop checks to see if the DAQ is a USB DAQ or a cDAQ (9181 or 9184) then ask user to check if DAQ is reserved
-    deviceSelect = easygui.multchoicebox('Please select the DAQ you are using','DAQ Selection',('USB cDAQ','cDAQ9181','cDAQ9184','Other'))
-    if deviceSelect == 'cDAQ9181' or 'cDAQ184':
-        pass
-    elif deviceSelect == 'USB cDAQ':
+    deviceSelect = easygui.multchoicebox('Please select the DAQ chasis you are using','DAQ Chasis Selection',('USB cDAQ','cDAQ9181','cDAQ9184','Other'))
+    if deviceSelect == 'cDAQ9181' or 'cDAQ184' or 'USB cDAQ':
         pass
     else:
         easygui.msgbox('The DAQ you are currently using is not supported by this program. The current supported DAQ is: USB cDAQ, cDAQ9181, & cDAQ9184')
@@ -39,29 +39,38 @@ if len(deviceSelect) == 1:
         else:
             easygui.msgbox('Check your IP to ensure it matches the subnet mask of the DAQ and that the connection between your PC and the device is stable. Else, not sure what to tell you', 'Something is not right', "OK")
 elif len(deviceSelect) >= 2:
-        devices=easygui.multchoicebox('Choose the devices you are using','DI DAQ(s) Selection', [dev.name for dev in sys.devices])
+        devices=easygui.multchoicebox('Choose the devices you are using','NI DAQ(s) Selection', [dev.name for dev in sys.devices])
 else:
     easygui.msgbox('No devices are detected, check to ensure there is a stable commection between your PC and the DAQ', 'NO DEVICE DETECTED', 'OK')
     exit()
 
-assert len(deviceSelect) == 1, 'multiple DAQs are not currently supported'
-#for device in devices:
-    #dev=sys.devices[deviceMap[devices]]
+assert len(deviceSelect) == 1, easygui.msgbox('multiple DAQs are not currently supported', 'Only one device in this version of the software','OK')
+
+for device in devices:
+    dev=sys.devices[deviceMap[devices]]
     
 TCs = easygui.integerbox('How many thermocouples do you have (1-24)?', 'Number of thermocouples', lowerbound = 1, upperbound = 24)
 
 for i in range (TCs):
-    task.ai_channels.add_ai_thrmcpl_chan(f'{dev.name}/ai{i}',f'Temp{i}',min_val = float(0),max_val = float(100))
+    task.ai_channels.add_ai_thrmcpl_chan(f'{dev.name}/ai{i}',f'Temp{i}',min_val = float(0),max_val = float(2000))
     measurement[f'Temperature {i}']=[]
 
 print('DAQ initilization complete')
 
+#path = easygui.fileopenbox('Choose the path location for where you want to save the data','Choose Path Location',f'fileopenbox()')
 # while Test == True:
 
 
 #Up to date as of this point
     #Ideas: Impliment Pandas rather than xlwt
-    
+
+
+
+pandas.ExcelWriter(path= f"")
+
+
+
+
 init=timer()
 wb = Workbook()
 row=0
